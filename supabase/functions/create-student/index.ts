@@ -8,34 +8,35 @@ const corsHeaders = {
 };
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
-
   const respond = (data: unknown, status = 200) =>
     new Response(JSON.stringify(data), {
       status,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
 
-  try {
-    if (req.method !== "POST") {
-      return respond({ error: "درخواست نامعتبر است." }, 405);
-    }
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
 
+  if (req.method !== "POST") {
+    return respond({ error: "درخواست نامعتبر است." }, 405);
+  }
+
+  try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
     if (!supabaseUrl || !serviceKey) {
-      return respond({ error: "تنظیمات سرور کامل نیست." }, 500);
+      return respond({ error: "تنظیمات محرمانه سرور کامل نیست." }, 500);
     }
 
     const authHeader = req.headers.get("Authorization");
+
     if (!authHeader?.startsWith("Bearer ")) {
       return respond({ error: "ابتدا وارد حساب شوید." }, 401);
     }
 
-    const token = authHeader.replace("Bearer ", "");
+    const token = authHeader.slice(7);
 
     const adminDb = createClient(supabaseUrl, serviceKey, {
       auth: {
@@ -44,7 +45,6 @@ Deno.serve(async (req) => {
       },
     });
 
-    // بررسی هویت کاربر درخواست‌دهنده
     const { data: userData, error: userError } =
       await adminDb.auth.getUser(token);
 
@@ -52,7 +52,6 @@ Deno.serve(async (req) => {
       return respond({ error: "نشست کاربری معتبر نیست." }, 401);
     }
 
-    // بررسی نقش مدیر
     const { data: profile, error: profileError } = await adminDb
       .from("profiles")
       .select("role")
@@ -78,17 +77,14 @@ Deno.serve(async (req) => {
       full_name.length > 100 ||
       ![10, 11, 12].includes(grade)
     ) {
-      return respond({
-        error: "اطلاعات واردشده معتبر نیست. رمز باید حداقل ۸ کاراکتر باشد.",
-      }, 400);
+      return respond({ error: "اطلاعات واردشده معتبر نیست." }, 400);
     }
 
-    // ساخت حساب احراز هویت
     const { data: newUser, error: createError } =
       await adminDb.auth.admin.createUser({
         email,
         password,
-        email_confirm: false,
+        email_confirm: true,
         user_metadata: { full_name },
       });
 
@@ -98,7 +94,6 @@ Deno.serve(async (req) => {
       }, 400);
     }
 
-    // ساخت پروفایل دانش‌آموز
     const { error: insertError } = await adminDb
       .from("profiles")
       .insert({
@@ -110,9 +105,7 @@ Deno.serve(async (req) => {
       });
 
     if (insertError) {
-      // اگر ساخت پروفایل شکست خورد، حساب ناقص حذف شود
       await adminDb.auth.admin.deleteUser(newUser.user.id);
-
       return respond({ error: "ثبت پروفایل دانش‌آموز ناموفق بود." }, 500);
     }
 
@@ -121,4 +114,3 @@ Deno.serve(async (req) => {
     return respond({ error: "خطای داخلی سرور رخ داد." }, 500);
   }
 });
-
