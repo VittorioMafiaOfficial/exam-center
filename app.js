@@ -1,6 +1,6 @@
 // تنظیمات پروژه Supabase را در این قسمت قرار دهید.
-const SUPABASE_URL = "YOUR_SUPABASE_URL";
-const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+const SUPABASE_URL = "https://thluimtxrmgoakwqjwkx.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_p_RaoQq00KWvvbmWMoyQng_0lpH6bef";
 const configured = !SUPABASE_URL.startsWith("YOUR_") && !SUPABASE_ANON_KEY.startsWith("YOUR_");
 const db = configured ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 let currentProfile = null;
