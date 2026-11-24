@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101827">
+  <title>EXAM CENTER | سامانه آزمون</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <div id="loginView" class="login-wrap">
+    <section class="login-card">
+      <div class="brand-mark">EC</div>
+      <p class="eyebrow">EXAM CENTER</p>
+      <h1>سامانه جامع آزمون</h1>
+      <p class="muted">برای ورود، نام کاربری و رمز عبور خود را وارد کنید.</p>
+      <form id="loginForm">
+        <label>ایمیل / نام کاربری</label>
+        <input id="email" type="email" autocomplete="username" required placeholder="name@example.com">
+        <label>رمز عبور</label>
+        <input id="password" type="password" autocomplete="current-password" required placeholder="رمز عبور">
+        <button class="primary full" type="submit">ورود به سامانه</button>
+      </form>
+      <p id="loginMessage" class="message"></p>
+      <p class="tiny muted">حساب کاربری توسط مدیر سامانه ایجاد می‌شود.</p>
+    </section>
+  </div>
+
+  <div id="appView" class="app hidden">
+    <aside class="sidebar">
+      <div class="side-brand"><div class="brand-mark small">EC</div><div><b>EXAM CENTER</b><small>سامانه آزمون</small></div></div>
+      <div class="profile-mini"><div class="avatar">دانش</div><div><b id="userName">کاربر</b><small id="userMeta">دانش‌آموز</small></div></div>
+      <nav>
+        <button class="nav-link active" data-page="dashboard">▦　داشبورد</button>
+        <button class="nav-link" data-page="exams">▤　آزمون‌ها</button>
+        <button class="nav-link" data-page="results">▥　کارنامه‌ها</button>
+        <button class="nav-link admin-only hidden" data-page="manage">⚙　مدیریت</button>
+      </nav>
+      <button id="logoutBtn" class="logout">خروج از حساب ↪</button>
+    </aside>
+    <main class="main">
+      <header class="topbar"><div><span class="eyebrow">پنل کاربری</span><h2 id="pageTitle">داشبورد</h2></div><span class="secure">● اتصال امن</span></header>
+      <section id="dashboardPage" class="page">
+        <div class="welcome"><div><p class="eyebrow">خوش آمدید</p><h1>آماده‌ای برای یک آزمون جدید؟</h1><p>آزمون‌های فعال و وضعیت آموزشی خود را از این قسمت دنبال کنید.</p></div><div class="welcome-icon">✦</div></div>
+        <div class="stats">
+          <article class="stat"><span>آزمون‌های فعال</span><strong id="activeCount">—</strong><small>قابل شرکت</small></article>
+          <article class="stat"><span>آزمون‌های انجام‌شده</span><strong id="doneCount">—</strong><small>در حساب شما</small></article>
+          <article class="stat"><span>پایه تحصیلی</span><strong id="gradeStat">—</strong><small>پروفایل آموزشی</small></article>
+        </div>
+        <div class="section-head"><div><h3>آزمون‌های اخیر</h3><p>آزمون‌های منتشرشده برای پایه شما</p></div><button class="text-btn" data-goto="exams">مشاهده همه ←</button></div>
+        <div id="recentExams" class="exam-grid"><div class="empty">در حال دریافت اطلاعات…</div></div>
+      </section>
+      <section id="examsPage" class="page hidden"><div class="section-head"><div><h3>فهرست آزمون‌ها</h3><p>آزمون‌های مجاز برای پایه تحصیلی شما</p></div></div><div id="examList" class="exam-grid"></div></section>
+      <section id="resultsPage" class="page hidden"><div class="section-head"><div><h3>کارنامه‌های من</h3><p>نتایج آزمون‌های ثبت‌شده</p></div></div><div id="resultList" class="table-wrap"></div></section>
+      <section id="managePage" class="page hidden">
+        <div class="section-head"><div><h3>مدیریت سامانه</h3><p>مدیریت دانش‌آموزان و آزمون‌ها</p></div></div>
+        <div class="admin-grid">
+          <article class="panel"><h3>ایجاد حساب دانش‌آموز</h3><form id="studentForm">
+            <label>نام و نام خانوادگی</label><input id="studentName" required>
+            <label>ایمیل دانش‌آموز</label><input id="studentEmail" type="email" required>
+            <label>رمز عبور اولیه</label><input id="studentPassword" type="password" minlength="8" required>
+            <label>پایه</label><select id="studentGrade"><option value="10">دهم</option><option value="11">یازدهم</option><option value="12">دوازدهم</option></select>
+            <button class="primary" type="submit">ساخت حساب</button><p id="studentMessage" class="message"></p>
+          </form></article>
+          <article class="panel"><h3>ایجاد آزمون</h3><form id="examForm">
+            <label>عنوان آزمون</label><input id="examTitle" required placeholder="مثلاً آزمون فصل اول زیست">
+            <label>درس</label><select id="examSubject"><option>زیست‌شناسی</option><option>شیمی</option><option>فیزیک</option><option>ریاضی</option><option>زمین‌شناسی</option><option>فارسی</option><option>عربی</option><option>دینی</option><option>زبان انگلیسی</option></select>
+            <label>پایه</label><select id="examGrade"><option value="10">دهم</option><option value="11">یازدهم</option><option value="12">دوازدهم</option><option value="all">همه پایه‌ها</option></select>
+            <div class="two"><div><label>تعداد سؤال</label><input id="examQuestions" type="number" min="1" value="20" required></div><div><label>زمان (دقیقه)</label><input id="examDuration" type="number" min="1" value="30" required></div></div>
+            <button class="primary" type="submit">ایجاد آزمون</button><p id="examMessage" class="message"></p>
+          </form></article>
+        </div>
+        <article class="panel question-panel"><h3>افزودن سؤال به آزمون</h3><p class="muted">ابتدا آزمون را بسازید، سپس شناسه آن را از فهرست آزمون‌ها بردارید و سؤال‌ها را اضافه کنید. ابزار افزودن سؤال در نسخه بعدی به پنل اضافه می‌شود.</p><div id="adminExamList"></div></article>
+      </section>
+    </main>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
